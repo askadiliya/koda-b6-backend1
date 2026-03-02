@@ -2,10 +2,14 @@ package handlers
 
 import (
 	"net/http"
+	"time"
 
-	"github.com/gin-gonic/gin"
 	"backend-demo/models"
 	"backend-demo/utils"
+
+	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
+	"github.com/gin-gonic/gin"
 )
 
 type Response struct {
@@ -59,10 +63,11 @@ func Register(ctx *gin.Context) {
 		}
 	}
 
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	user := models.User{
 		ID:       models.AutoID,
 		Email:    input.Email,
-		Password: input.Password,
+		Password: string(hashedPassword),
 	}
 
 	models.AutoID++
@@ -95,11 +100,32 @@ func Login(ctx *gin.Context) {
 	}
 
 	for _, u := range models.Users {
-		if u.Email == input.Email && u.Password == input.Password {
+
+		err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(input.Password))
+
+		if u.Email == input.Email && err == nil {
+
+			token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+				"user_id": u.ID,
+				"email":   u.Email,
+				"exp":     time.Now().Add(time.Hour * 1).Unix(),
+			})
+
+			tokenString, err := token.SignedString([]byte("secret_key"))
+			if err != nil {
+				ctx.JSON(http.StatusInternalServerError, Response{
+					Success: false,
+					Message: "failed to generate token",
+				})
+				return
+			}
+
 			ctx.JSON(http.StatusOK, Response{
 				Success: true,
 				Message: "login success",
-				Results: u,
+				Results: gin.H{
+					"token": tokenString,
+				},
 			})
 			return
 		}
