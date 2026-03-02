@@ -149,3 +149,10 @@ func Login(ctx *gin.Context) {
 		Message: "invalid email or password",
 	})
 }
+
+func Profile(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, Response{
+		Success: true,
+		Message: "this is protected profile",
+	})
+}
