@@ -101,10 +101,22 @@ func Login(ctx *gin.Context) {
 
 	for _, u := range models.Users {
 
-		err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(input.Password))
+		if u.Email == input.Email {
 
-		if u.Email == input.Email && err == nil {
+			err := bcrypt.CompareHashAndPassword(
+				[]byte(u.Password),
+				[]byte(input.Password),
+			)
 
+			if err != nil {
+				ctx.JSON(http.StatusUnauthorized, Response{
+					Success: false,
+					Message: "invalid email or password",
+				})
+				return
+			}
+
+			
 			token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 				"user_id": u.ID,
 				"email":   u.Email,
@@ -120,6 +132,7 @@ func Login(ctx *gin.Context) {
 				return
 			}
 
+			
 			ctx.JSON(http.StatusOK, Response{
 				Success: true,
 				Message: "login success",

@@ -1,23 +1,17 @@
-POST /users HTTP/1.1
-Host: localhost:8888
+POST http://localhost:8888/register
 Content-Type: application/json
 
 {
-  "email": "admind@mail.com",
+  "email": "admin@mail.com",
   "password": "1234"
 }
 
 ###
 
-GET /users HTTP/1.1
-Host: localhost:8888
-
-###
-
-PATCH /users/1 HTTP/1.1
-Host: localhost:8888
+POST http://localhost:8888/login
 Content-Type: application/json
 
 {
-  "email": "admind@mail.com"
+  "email": "admin@mail.com",
+  "password": "1234"
 }
